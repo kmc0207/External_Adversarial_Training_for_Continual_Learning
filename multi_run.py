@@ -23,7 +23,7 @@ from SCL import SupConLoss
 
 
 class RUN(object):
-    def __init__(self,device,a_iter=7,eps=0.0314,alpha=0.00784,data=10,v=1,shuffle=False,give = False,transform=False):
+    def __init__(self,device,a_iter=7,eps=0.0314,alpha=0.00784,data=10,v=1,shuffle=False,give = False,transform=False,instance=True):
         torch.cuda.empty_cache()
         if data == 'CIFAR10':
             self.data=10
@@ -36,8 +36,8 @@ class RUN(object):
                 set_y = set_y_a
                 self.transform=True
             test_loaders = make_test_loaders(set_x_t,set_y_t)
-            xv = torch.load('ciaf10_version_'+str(v)+'.pt')
-            set_rt = torch.load('robustness_test')
+            if instance == False:
+                xv = torch.load('ciaf10_version_'+str(v)+'.pt')
             self.size=32
         elif data==100:
             set_x,set_y,test_loaders = setting_data_100()
@@ -47,13 +47,14 @@ class RUN(object):
         elif data=='CIFAR100':
             self.data=100
             set_x,set_y,test_loaders = setting_data_100_20()
-            xv = torch.load('cifar100_version_'+str(v))
-            set_rt = torch.load('robustness_cifar100.pt')
+            if instance==False:
+                xv = torch.load('cifar100_version_'+str(v))
             self.size=32
         elif data == 'miniimagenet':
             self.data=data
             set_x_np,set_y_np,test_loaders = setting_data_image()
-            xv = torch.load('image_version_'+str(v))
+            if instance==False:
+                xv = torch.load('image_version_'+str(v))
             #xv = torch.load('miniimagenet_ae_v1.pt')
             set_rt = torch.load('robustness_cifar100.pt')
             set_x = []
