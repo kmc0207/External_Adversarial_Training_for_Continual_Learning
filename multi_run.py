@@ -17,14 +17,14 @@ import numpy as np
 from tsne import Analysis
 from training import Trainer
 import os
-from Buffer import Buffer
-from resnet import Reduced_ResNet18
-from SCL import SupConLoss
+#from resnet import Reduced_ResNet18
+#from SCL import SupConLoss
 
 
 class RUN(object):
-    def __init__(self,device,a_iter=7,eps=0.0314,alpha=0.00784,data=10,v=1,shuffle=False,give = False,transform=False,instance=True):
+    def __init__(self,device,a_iter=7,eps=0.0314,alpha=0.00784,data=10,v=1,shuffle=False,give = False,transform=False,instant=True):
         torch.cuda.empty_cache()
+        xv=[]
         if data == 'CIFAR10':
             self.data=10
             set_x,set_y,set_x_t,set_y_t= setting_data(shuffle=shuffle,give=give)
@@ -36,27 +36,20 @@ class RUN(object):
                 set_y = set_y_a
                 self.transform=True
             test_loaders = make_test_loaders(set_x_t,set_y_t)
-            if instance == False:
+            if instant == False:
                 xv = torch.load('ciaf10_version_'+str(v)+'.pt')
-            self.size=32
-        elif data==100:
-            set_x,set_y,test_loaders = setting_data_100()
-            xv = torch.load('ae_cifar100_v'+str(v)+'.pt')
-            set_rt = torch.load('robustness_cifar100.pt')
             self.size=32
         elif data=='CIFAR100':
             self.data=100
             set_x,set_y,test_loaders = setting_data_100_20()
-            if instance==False:
+            if instant==False:
                 xv = torch.load('cifar100_version_'+str(v))
             self.size=32
         elif data == 'miniimagenet':
             self.data=data
             set_x_np,set_y_np,test_loaders = setting_data_image()
-            if instance==False:
+            if instant==False:
                 xv = torch.load('image_version_'+str(v))
-            #xv = torch.load('miniimagenet_ae_v1.pt')
-            set_rt = torch.load('robustness_cifar100.pt')
             set_x = []
             set_y = []
             set_vy = []
@@ -83,8 +76,6 @@ class RUN(object):
         self.set_x = set_x
         self.set_y = set_y
         self.tls = test_loaders
-        self.set_rt = set_rt
-        self.rts = []
         self.a_iter = a_iter
         self.eps = eps
         if self.data == '100_20':
@@ -297,7 +288,7 @@ class RUN(object):
         accs = []
         dl = D.DataLoader(ds,batch_size=10,shuffle=True)
         adversary = LinfPGDAttack(model,self.eps,self.a,self.a_iter)
-        if self.data != 'image':
+        if self.data != 'miniimagenet':
             size=32
         else :
             size=84
@@ -315,6 +306,7 @@ class RUN(object):
                         for j in range(mem_iter):
                                 logits = model.forward(batch_x)
                                 loss = criterion(logits,batch_y)
+                                losss += loss.detach().to('cpu')
                                 opt.zero_grad()
                                 loss.backward()
                                 if adv_t == True:
@@ -327,12 +319,11 @@ class RUN(object):
                                 else : 
                                     mem_x, mem_y = Mem.pull(mem_batch)
                                 mem_x = mem_x.view(-1,3,size,size).to(self.device)
-                                #print(np.unique(np.array(mem_y)))
                                 mem_y = mem_y.view(-1).to(self.device)
                                 mem_logits = model.forward(mem_x)
-                                #print(mem_y.shape,mem_logits.shape)
                                 mem_loss = criterion(mem_logits,mem_y)
                                 mem_loss.backward()
+                                losss += mem_loss.detach().to('cpu')
 
                     else :
                         for j in range(mem_iter):
@@ -350,21 +341,21 @@ class RUN(object):
                                 #print(mem_y.shape,mem_logits.shape)
                                 mem_loss = criterion(logits,labels)
                                 mem_loss.backward()  
+                                losss += mem_loss.detach().to('cpu')
                 else :
                     logits = model.forward(batch_x)
                     loss = criterion(logits,batch_y)
+                    losss += loss.detach().to('cpu')
                     opt.zero_grad()
                     loss.backward()
                 opt.step()
-            if ep%10 == 0 and ep!=0:
-                if show==True:
-                    print(self.test(model,self.tls))
             if test== True:
                 acc = self.test(model,self.tls)
                 accs.append(acc)
+            losses.append(losss)
         if test == True:
-            return losses,accs
-        return losses
+            return np.array(losses),np.array(accs)
+        return np.array(losses)
     
     def review_trick(self,model,Mem,opt):
         x = torch.stack(Mem.image)
@@ -390,7 +381,7 @@ class RUN(object):
         dl = D.DataLoader(ds,batch_size=10,shuffle=True)
         if mir==True:
             Mem = Memory(5000,device=self.device,subsample= 50 )
-        if self.data != 'image':
+        if self.data != 'miniimagenet':
             size=32
         else :
             size=84
@@ -471,7 +462,7 @@ class RUN(object):
                 adv = adversary.perturb(batch_x,batch_y).to('cpu')
                 ae.append(adv)
         aes = torch.stack(ae).view(-1,3,self.size,self.size)
-        print(aes.shape)
+        #print(aes.shape)
         return aes
     
     def adv_attack_img(self,model,ds,a_iter=7):
@@ -611,7 +602,7 @@ class RUN(object):
         for i in range(len(self.set_x)):
             print(i)
             if self.data != 10:
-                model = Reduced_ResNet18(100)
+                model = reduced_ResNet18(100)
                 if self.data == 'image':
                     model.linear = torch.nn.Linear(640,100)
                     size= 84
@@ -629,7 +620,7 @@ class RUN(object):
             print(self.test(model,self.tls))
             ae = self.adv_attack(model,ds)
             if test==True:
-                model_ = Reduced_ResNet18(100)
+                model_ = reduced_ResNet18(100)
                 if self.data == 'image':
                     model_.linear = torch.nn.Linear(640,100)
                 model_.to(self.device)
@@ -644,7 +635,7 @@ class RUN(object):
             
         
         
-    def replay(self,std_train=False,vir_train=False,std_mem = False,vir_mem=False,mem_size=5000, lr=0.1, epoch=1,mem_iter=1,batch_size=10,mem_batch=10,ncm=False,mir=False,add_m=False,rv=False,iteration=False,subsample=50,show=False,instant = False,reduced=True,er=False):
+    def replay(self,std_train=False,vir_train=False,std_mem = False,vir_mem=False,mem_size=5000, lr=0.1, epoch=1,mem_iter=1,batch_size=10,mem_batch=10,ncm=False,mir=False,add_m=False,rv=False,iteration=False,subsample=50,show=False,instant = False,reduced=True,er=False,eae_epoch=1,test=False,epoch_control=False):
         name = 'mem_size_'+str(mem_size)
         if mir==True:
             name += '+MIR'
@@ -661,21 +652,22 @@ class RUN(object):
         size= self.size
         Mem = Memory(mem_size,size=size,subsample=subsample,device= self.device)
         if self.data != 10:
-            model = Reduced_ResNet18(100)
+            model = reduced_ResNet18(100)
         else:
-            model = Reduced_ResNet18(10)
+            model = reduced_ResNet18(10)
         if reduced == False:
             if self.data != 10:
                 model = ResNet18(100)
             else :
                 model = ResNet18(10)
         
-        if self.data == 'image':
+        if self.data == 'miniimagenet':
             model.linear=torch.nn.Linear(640,100)
         model = model.to(self.device)
         optimizer = optim.SGD(model.parameters(),lr=lr)
         accs = []
-
+        t_accs = []
+        losses = []
         for i in range(0,len(self.set_x)):
             x = []
             y = []
@@ -688,30 +680,41 @@ class RUN(object):
                     y.append(self.set_y[i].view(-1))
                 else :
                     if self.data != 10:
-                        model_ = Reduced_ResNet18(100)
+                        model_ = reduced_ResNet18(100)
                     else:
-                        model_ = Reduced_ResNet18(10)
+                        model_ = reduced_ResNet18(10)
 
-                    if self.data == 'image':
+                    if self.data == 'miniimagenet':
                         model_.linear=torch.nn.Linear(640,100)
                     model_ = model_.to(self.device)
                     optimizer_ = optim.SGD(model_.parameters(),lr=lr)
                     ds_ = D.TensorDataset(self.set_x[i].view(-1,3,size,size),self.set_y[i].view(-1))
                     dl_ = D.DataLoader(ds_,batch_size=100,shuffle=True)
-                    self.adv_training(model_,dl_,optimizer_,15)
+                    self.adv_training(model_,dl_,optimizer_,eae_epoch)
                     ae = self.adv_attack(model_,ds_)
                     x.append(ae.view(-1,3,size,size))
                     y.append(self.set_y[i].view(-1))
             x = torch.cat(x)
             y = torch.cat(y)
             training_data = D.TensorDataset(x.view(-1,3,size,size),y.view(-1))
-            if i !=0:                self.training_cifar(model,training_data,Mem,optimizer,epoch,mem=True,mem_batch=mem_batch,mir=mir,er=er)
-            else :
-                if epoch > 10:
-                    epoch_ = 11
+            if epoch_control !=False:
+                epoch = epoch_control[i]
+            if i !=0:                
+                if test == True:
+                    loss,t_acc = self.training_cifar(model,training_data,Mem,optimizer,epoch,mem=True,mem_batch=mem_batch,mir=mir,er=er,test=True)
+                    losses.append(loss)
+                    t_accs.append(t_acc)
                 else :
-                    epoch_ = epoch
-                self.training_cifar(model,training_data,[],optimizer,epoch_,mem=False,mem_batch=mem_batch)
+                    loss = self.training_cifar(model,training_data,Mem,optimizer,epoch,mem=True,mem_batch=mem_batch,mir=mir,er=er)
+                    losses.append(loss)
+            else :
+                if test == True:
+                    loss,t_acc = self.training_cifar(model,training_data,[],optimizer,epoch,mem=False,mem_batch=mem_batch)
+                    losses.append(loss)
+                    t_accs.append(t_acc)
+                else:
+                    loss = self.training_cifar(model,training_data,[],optimizer,epoch,mem=False,mem_batch=mem_batch)
+                    losses.append(loss)
             if std_mem == True:
                 if add_m == True:
                     Mem.add_m(self.set_x[i].view(-1,3,size,size),self.set_y[i].view(-1))
@@ -726,6 +729,7 @@ class RUN(object):
                 optimizer_m = optim.SGD(model.parameters(),lr=lr*0.1)
                 self.review_trick(model,Mem,optimizer_m)
             acc = self.test(model,self.tls)
+            accs.append(np.array(acc))
             #print(acc)
             if show==True:
                 print(acc)
@@ -734,6 +738,12 @@ class RUN(object):
         if iteration ==False:
             print(acc)
             print('acc : ',np.mean(np.array(acc)))
+        acc_df = pd.DataFrame(np.array(t_accs))
+        loss_df = pd.DataFrame(np.array(losses))
+        acc_df.to_csv('t_acc.csv',index=False)
+        loss_df.to_csv('loss.csv',index=False)
+        accs_df = pd.DataFrame(np.array(accs))
+        accs_df.to_csv('acc.csv',index=False)
         if ncm==True:
             if iteration ==False:
                 print('ncm_acc :',np.mean(np.array(ncm_acc)))

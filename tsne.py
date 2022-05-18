@@ -10,7 +10,6 @@ import torchvision.transforms as transforms
 import torchvision.models as models
 import copy
 import os
-from training import Trainer
 from model import ResNet18
 from data import setting_data,make_test_loaders
 import matplotlib.pyplot as plt
