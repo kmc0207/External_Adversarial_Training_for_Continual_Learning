@@ -1,5 +1,9 @@
 # External_Adversarial_Training_for_Continual_Learning
 
+Please download requirement.txt
+pip install -r requirement.txt
+
+
 To test our methods, you can use main.py
 
 ER :
