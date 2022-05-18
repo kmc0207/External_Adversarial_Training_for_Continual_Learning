@@ -19,13 +19,13 @@ def main(args):
     if args.epoch_control==False:
         R.replay(std_train=args.std_train,vir_train=args.EAT,std_mem=args.std_mem,epoch=args.per_task_epoch,
                  vir_mem=args.vir_mem,mem_size=args.mem_size,lr=args.learning_rate,batch_size=args.batch_size,
-                 mem_batch=args.mem_batch_size,subsample=args.mir_subsample,rv=args.rv,instant=args.instant)
+                 mem_batch=args.mem_batch_size,subsample=args.mir_subsample,rv=args.rv,instant=args.instant,test=args.test,save=args.save)
     else:
         epoch_control = [args.epoch_1,args.epoch_2,args.epoch_3,args.epoch_4,args.epoch_5]
         R.replay(std_train=args.std_train,vir_train=args.EAT,std_mem=args.std_mem,
                  vir_mem=args.vir_mem,mem_size=args.mem_size,lr=args.learning_rate,batch_size=args.batch_size,
                  mem_batch=args.mem_batch_size,subsample=args.mir_subsample,rv=args.rv,instant=args.instant,
-                 epoch_control = epoch_control)
+                 epoch_control = epoch_control,test=args.test,save=args.save)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = "External Adversarial Attack")
     parser.add_argument('--seed',default=0,type=int)
@@ -52,5 +52,7 @@ if __name__ == "__main__":
     parser.add_argument('--epoch_3',default=1,type=int)
     parser.add_argument('--epoch_4',default=1,type=int)
     parser.add_argument('--epoch_5',default=1,type=int)
+    parser.add_argument('--test',default=False,type=boolean_string)
+    parser.add_argument('--save',default=False)
     args=parser.parse_args()
     main(args)
