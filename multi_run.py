@@ -351,6 +351,7 @@ class RUN(object):
                 opt.step()
             if test== True:
                 acc = self.test(model,self.tls)
+                #print(acc)
                 accs.append(acc)
             losses.append(losss)
         if test == True:
@@ -632,10 +633,17 @@ class RUN(object):
             aes.append(ae)
         return aes
 
-            
+
+    def createDirectory(self,directory): 
+        try: 
+            if not os.path.exists(directory):
+                os.makedirs(directory) 
+        except OSError:
+            print("Error: Failed to create the directory.")
+         
         
         
-    def replay(self,std_train=False,vir_train=False,std_mem = False,vir_mem=False,mem_size=5000, lr=0.1, epoch=1,mem_iter=1,batch_size=10,mem_batch=10,ncm=False,mir=False,add_m=False,rv=False,iteration=False,subsample=50,show=False,instant = False,reduced=True,er=False,eae_epoch=1,test=False,epoch_control=False):
+    def replay(self,std_train=False,vir_train=False,std_mem = False,vir_mem=False,mem_size=5000, lr=0.1, epoch=1,mem_iter=1,batch_size=10,mem_batch=10,ncm=False,mir=False,add_m=False,rv=False,iteration=False,subsample=50,show=False,instant = False,reduced=True,er=False,eae_epoch=1,test=False,epoch_control=False,save=False):
         name = 'mem_size_'+str(mem_size)
         if mir==True:
             name += '+MIR'
@@ -709,7 +717,7 @@ class RUN(object):
                     losses.append(loss)
             else :
                 if test == True:
-                    loss,t_acc = self.training_cifar(model,training_data,[],optimizer,epoch,mem=False,mem_batch=mem_batch)
+                    loss,t_acc = self.training_cifar(model,training_data,[],optimizer,epoch,mem=False,mem_batch=mem_batch,test=True)
                     losses.append(loss)
                     t_accs.append(t_acc)
                 else:
@@ -738,12 +746,25 @@ class RUN(object):
         if iteration ==False:
             print(acc)
             print('acc : ',np.mean(np.array(acc)))
-        acc_df = pd.DataFrame(np.array(t_accs))
-        loss_df = pd.DataFrame(np.array(losses))
+        acc_df = []
+        print('t_accs')
+        for a in t_accs:
+            for ass in a:
+                acc_df.append(ass)
+        print('losses')
+        for b in losses:
+            print(b)
+        acc_df = pd.DataFrame(np.stack(acc_df))
+        loss_df = pd.DataFrame(np.stack(losses))
         acc_df.to_csv('t_acc.csv',index=False)
         loss_df.to_csv('loss.csv',index=False)
-        accs_df = pd.DataFrame(np.array(accs))
-        accs_df.to_csv('acc.csv',index=False)
+        if save == False:
+            acc_df.to_csv('t_acc.csv',index=False)
+            loss_df.to_csv('loss.csv',index=False)
+        else:
+            self.createDirectory(save)
+            acc_df.to_csv(save+'/t_acc.csv',index=False)
+            loss_df.to_csv(save+'/loss.csv',index=False)
         if ncm==True:
             if iteration ==False:
                 print('ncm_acc :',np.mean(np.array(ncm_acc)))
