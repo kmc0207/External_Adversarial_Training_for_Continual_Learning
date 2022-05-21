@@ -85,24 +85,6 @@ def setting_data_transform(shuffle=False,give=False):
         for i in range(5):
           set_x_t[i] = torch.stack(set_x_t_[i])
           set_y_t[i] = torch.stack(set_y_t_[i])
-        ds = torch.load('cifar10_primitive.pt')
-        dl = torch.utils.data.DataLoader(ds,batch_size=1)
-        set_x_v_ = [[] for i in range(5)]
-        set_y_v_ = [[] for i in range(5)]
-        set_x_v = [[] for i in range(5)]
-        set_y_v = [[] for i in range(5)]
-        for image,label in dl:
-            y = int(label)
-            #print(y.size())
-            if y>=5:
-                y = label - 5
-            else :
-                y = label
-            set_x_v_[y].append(image)
-            set_y_v_[y].append(label)
-        for i in range(5):
-            set_x_v[i] = torch.stack(set_x_v_[i])
-            set_y_v[i] = torch.stack(set_y_v_[i])
     else :
         if give !=False:
             num = give
@@ -132,20 +114,6 @@ def setting_data_transform(shuffle=False,give=False):
         for i in range(5):
             set_x_t[i] = torch.stack(set_x_t_[i])
             set_y_t[i] = torch.stack(set_y_t_[i])
-        ds = torch.load('cifar10_primitive.pt')
-        dl = torch.utils.data.DataLoader(ds,batch_size=1)
-        set_x_v_ = [[] for i in range(5)]
-        set_y_v_ = [[] for i in range(5)]
-        set_x_v = [[] for i in range(5)]
-        set_y_v = [[] for i in range(5)]
-        for image,label in dl:
-            y = int(label)
-            #print(y,dic[y])
-            set_x_v_[dic[y]].append(image)
-            set_y_v_[dic[y]].append(label)
-        for i in range(5):
-            set_x_v[i] = torch.stack(set_x_v_[i])
-            set_y_v[i] = torch.stack(set_y_v_[i])
             
             
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
@@ -214,24 +182,6 @@ def setting_data(shuffle= False,give = False,transform=False):
         for i in range(5):
           set_x_t[i] = torch.stack(set_x_t_[i])
           set_y_t[i] = torch.stack(set_y_t_[i])
-        ds = torch.load('cifar10_primitive.pt')
-        dl = torch.utils.data.DataLoader(ds,batch_size=1)
-        set_x_v_ = [[] for i in range(5)]
-        set_y_v_ = [[] for i in range(5)]
-        set_x_v = [[] for i in range(5)]
-        set_y_v = [[] for i in range(5)]
-        for image,label in dl:
-            y = int(label)
-            #print(y.size())
-            if y>=5:
-                y = label - 5
-            else :
-                y = label
-            set_x_v_[y].append(image)
-            set_y_v_[y].append(label)
-        for i in range(5):
-            set_x_v[i] = torch.stack(set_x_v_[i])
-            set_y_v[i] = torch.stack(set_y_v_[i])
     else :
         if give !=False:
             num = give
@@ -261,20 +211,6 @@ def setting_data(shuffle= False,give = False,transform=False):
         for i in range(5):
             set_x_t[i] = torch.stack(set_x_t_[i])
             set_y_t[i] = torch.stack(set_y_t_[i])
-        ds = torch.load('cifar10_primitive.pt')
-        dl = torch.utils.data.DataLoader(ds,batch_size=1)
-        set_x_v_ = [[] for i in range(5)]
-        set_y_v_ = [[] for i in range(5)]
-        set_x_v = [[] for i in range(5)]
-        set_y_v = [[] for i in range(5)]
-        for image,label in dl:
-            y = int(label)
-            #print(y,dic[y])
-            set_x_v_[dic[y]].append(image)
-            set_y_v_[dic[y]].append(label)
-        for i in range(5):
-            set_x_v[i] = torch.stack(set_x_v_[i])
-            set_y_v[i] = torch.stack(set_y_v_[i])
             
             
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
