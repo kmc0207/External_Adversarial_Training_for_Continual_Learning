@@ -750,12 +750,16 @@ class RUN(object):
         print('t_accs')
         for a in t_accs:
             for ass in a:
+                print(ass)
                 acc_df.append(ass)
         print('losses')
+        loss_df = []
         for b in losses:
-            print(b)
-        acc_df = pd.DataFrame(np.stack(acc_df))
-        loss_df = pd.DataFrame(np.stack(losses))
+            for bs in b:
+                print(b)
+                loss_ef.append(bs)
+        acc_df = pd.DataFrame(np.array(acc_df))
+        loss_df = pd.DataFrame(np.array(loss_df))
         acc_df.to_csv('t_acc.csv',index=False)
         loss_df.to_csv('loss.csv',index=False)
         if save == False:
