@@ -41,6 +41,12 @@ To run my pre-trained model for CIFAR10, run :
 python pre_trained.py
 ```
 
+## Tricks
+--MIR True : use MIR instead of ER
+--EAT True : use EAT on MIR or ER
+--NCM True : use NCM trick on MIR or ER
+--RV True : use review trick on MIR or ER
+
 ## Results
 
 Our model achieves the following performance on :
