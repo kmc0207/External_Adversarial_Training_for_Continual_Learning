@@ -643,7 +643,13 @@ class RUN(object):
          
         
         
-    def replay(self,std_train=False,vir_train=False,std_mem = False,vir_mem=False,mem_size=5000, lr=0.1, epoch=1,mem_iter=1,batch_size=10,mem_batch=10,ncm=False,mir=False,add_m=False,rv=False,iteration=False,subsample=50,show=False,instant = False,reduced=True,er=False,eae_epoch=1,test=False,epoch_control=False,save=False):
+    def replay(self,std_train=False,vir_train=False,std_mem = False,
+               vir_mem=False,mem_size=5000, lr=0.1, epoch=1,mem_iter=1,
+               batch_size=10,mem_batch=10,ncm=False,mir=False,add_m=False,
+               rv=False,iteration=False,subsample=50,show=False,
+               instant = False,reduced=True,er=False,eae_epoch=1,
+               test=False,epoch_control=False,save=False,names='1',
+              save_model =False):
         name = 'mem_size_'+str(mem_size)
         if mir==True:
             name += '+MIR'
@@ -757,22 +763,24 @@ class RUN(object):
         for b in losses:
             for bs in b:
                 print(b)
-                loss_ef.append(bs)
+                loss_df.append(bs)
         acc_df = pd.DataFrame(np.array(acc_df))
         loss_df = pd.DataFrame(np.array(loss_df))
-        acc_df.to_csv('t_acc.csv',index=False)
-        loss_df.to_csv('loss.csv',index=False)
+        acc_df.to_csv('t_acc'+str(names)+'.csv',index=False)
+        loss_df.to_csv('loss'+str(names)+'.csv',index=False)
         if save == False:
-            acc_df.to_csv('t_acc.csv',index=False)
-            loss_df.to_csv('loss.csv',index=False)
+            acc_df.to_csv('t_acc'+str(names)+'.csv',index=False)
+            loss_df.to_csv('loss'+str(names)+'.csv',index=False)
         else:
             self.createDirectory(save)
-            acc_df.to_csv(save+'/t_acc.csv',index=False)
-            loss_df.to_csv(save+'/loss.csv',index=False)
+            acc_df.to_csv(save+'/t_acc'+str(names)+'.csv',index=False)
+            loss_df.to_csv(save+'/loss'+str(names)+'.csv',index=False)
         if ncm==True:
             if iteration ==False:
                 print('ncm_acc :',np.mean(np.array(ncm_acc)))
             return np.mean(np.array(acc)), np.mean(np.array(ncm_acc))
+        if save_model==True:
+            torch.save(model,'model.pt')
         return np.mean(np.array(acc))
 
     
