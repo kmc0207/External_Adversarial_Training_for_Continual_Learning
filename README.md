@@ -1,4 +1,4 @@
->📋  A template README.md for code accompanying a Machine Learning paper
+
 
 # External Adversarial Training for Continual Learning
 
@@ -33,7 +33,6 @@ To evaluate my model on ImageNet, run:
 python main.py --data miniimagnet --per_task_epoch 1 --EAT True
 ```
 
->📋  Describe how to evaluate the trained models on benchmarks reported in the paper, give commands that produce the results (section below).
 
 ## Pre-trained Models
 To run my pre-trained model for CIFAR10, run :
@@ -46,7 +45,6 @@ python pre_trained.py
 
 Our model achieves the following performance on :
 
-### [Image Classification on ImageNet](https://paperswithcode.com/sota/image-classification-on-imagenet)
 
 | Model name         | CIFAR10 | CIFAR100 | Mini ImageNet |
 | ------------------ |---------------- | -------------- | -----------|
